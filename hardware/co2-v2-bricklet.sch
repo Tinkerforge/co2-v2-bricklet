@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:co2-v2-bricklet-cache
 EELAYER 26 0
 EELAYER END
 $Descr A4 11693 8268
@@ -717,4 +718,15 @@ Wire Wire Line
 	9650 2450 9650 2650
 Wire Wire Line
 	8950 2950 9250 2950
+$Comp
+L tinkerforge:SCD30 U?
+U 1 1 5B92D7A7
+P 10400 1950
+F 0 "U?" H 10778 1996 50  0000 L CNN
+F 1 "SCD30" H 10778 1905 50  0000 L CNN
+F 2 "kicad-libraries:SCD30" H 10450 1850 50  0001 C CNN
+F 3 "" H 10450 1850 50  0001 C CNN
+	1    10400 1950
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
