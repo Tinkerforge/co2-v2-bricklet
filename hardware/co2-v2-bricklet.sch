@@ -495,7 +495,6 @@ Text Notes 4450 3150 0    47   ~ 0
 I2C Master/CH1\nP0.6 :USIC0_CH1-DOUT0/DX0C : SDA\nP0.8: USIC0_CH1-SCLKOUT/DX1B : SCL
 Text Notes 550  7750 0    40   ~ 0
 Copyright Tinkerforge GmbH 2018.\nThis documentation describes Open Hardware and is licensed under the\nCERN OHL v. 1.1.\nYou may redistribute and modify this documentation under the terms of the\nCERN OHL v.1.1. (http://ohwr.org/cernohl). This documentation is distributed\nWITHOUT ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING OF\nMERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A\nPARTICULAR PURPOSE. Please see the CERN OHL v.1.1 for applicable\nconditions\n
-NoConn ~ 3600 6000
 NoConn ~ 3600 6100
 $Comp
 L tinkerforge:CONN_01X01 P2
@@ -515,29 +514,29 @@ Wire Wire Line
 $Comp
 L tinkerforge:+3.3VP #PWR017
 U 1 1 5B631B35
-P 1450 4350
-F 0 "#PWR017" H 1450 4450 40  0001 C CNN
-F 1 "+3.3VP" H 1450 4475 40  0000 C CNN
-F 2 "" H 1450 4350 60  0000 C CNN
-F 3 "" H 1450 4350 60  0000 C CNN
-	1    1450 4350
+P 1450 5850
+F 0 "#PWR017" H 1450 5950 40  0001 C CNN
+F 1 "+3.3VP" H 1450 5975 40  0000 C CNN
+F 2 "" H 1450 5850 60  0000 C CNN
+F 3 "" H 1450 5850 60  0000 C CNN
+	1    1450 5850
 	1    0    0    -1  
 $EndComp
 $Comp
 L tinkerforge:LED D2
 U 1 1 5B63192B
-P 2000 4500
-F 0 "D2" H 2000 4600 50  0000 C CNN
-F 1 "GREEN" H 2000 4400 50  0000 C CNN
-F 2 "D0603F" H 2000 4500 50  0001 C CNN
-F 3 "" H 2000 4500 50  0000 C CNN
-	1    2000 4500
+P 2000 6000
+F 0 "D2" H 2000 6100 50  0000 C CNN
+F 1 "GREEN" H 2000 5900 50  0000 C CNN
+F 2 "D0603F" H 2000 6000 50  0001 C CNN
+F 3 "" H 2000 6000 50  0000 C CNN
+	1    2000 6000
 	1    0    0    1   
 $EndComp
 Wire Wire Line
-	1800 4500 1450 4500
+	1800 6000 1450 6000
 Wire Wire Line
-	2700 4500 3600 4500
+	2700 6000 3600 6000
 $Comp
 L tinkerforge:DRILL U5
 U 1 1 5B633E5A
@@ -609,7 +608,7 @@ Wire Wire Line
 Wire Wire Line
 	6500 1550 6500 1700
 Wire Wire Line
-	1450 4500 1450 4350
+	1450 6000 1450 5850
 Wire Wire Line
 	1800 2050 2100 2050
 Wire Wire Line
@@ -685,12 +684,12 @@ Wire Wire Line
 $Comp
 L tinkerforge:R R2
 U 1 1 5BA106C6
-P 2450 4500
-F 0 "R2" V 2242 4500 50  0000 C CNN
-F 1 "1k" V 2333 4500 50  0000 C CNN
-F 2 "kicad-libraries:R0402F" V 2326 4500 60  0001 C CNN
-F 3 "" H 2450 4500 60  0000 C CNN
-	1    2450 4500
+P 2450 6000
+F 0 "R2" V 2242 6000 50  0000 C CNN
+F 1 "1k" V 2333 6000 50  0000 C CNN
+F 2 "kicad-libraries:R0402F" V 2326 6000 60  0001 C CNN
+F 3 "" H 2450 6000 60  0000 C CNN
+	1    2450 6000
 	0    1    1    0   
 $EndComp
 Wire Wire Line
@@ -711,4 +710,5 @@ F 3 "" H 2550 5500 60  0000 C CNN
 $EndComp
 Wire Wire Line
 	3600 5500 2800 5500
+NoConn ~ 3600 3500
 $EndSCHEMATC
