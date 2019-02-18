@@ -71,9 +71,11 @@ BootloaderHandleMessageResponse get_all_values(const GetAllValues *data, GetAllV
 
 BootloaderHandleMessageResponse set_air_pressure(const SetAirPressure *data) {
 	if((data->air_pressure != 0) && ((data->air_pressure < 700) || (data->air_pressure > 1200))) {
-		scd30.air_pressure     = data->air_pressure;
-		scd30.air_pressure_new = true;
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
+
+	scd30.air_pressure     = data->air_pressure;
+	scd30.air_pressure_new = true;
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
