@@ -146,7 +146,7 @@ void scd30_task_tick(void) {
 
 	coop_task_sleep_ms(2500);
 
-#if LOGGING_LEVEL != LOGGING_NONE
+#if LOGGING_LEVEL != LOGGING_DEBUG
 	// Print SCD30 firmware version
 	i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_FIRMWARE_VERSION, 0, NULL, true);
 	i2c_fifo_coop_read_direct(&scd30.i2c_fifo, 3, data, false);
