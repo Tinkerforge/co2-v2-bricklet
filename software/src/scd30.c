@@ -159,7 +159,7 @@ void scd30_task_tick(void) {
 	i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_TEMP_OFFSET, 0, NULL, true);
 	i2c_fifo_coop_read_direct(&scd30.i2c_fifo, 3, data, false);
 	if(scd30_check_crc(data)) {
-		scd30.temperature_offset = (data[1] << 8) | data[0];
+		scd30.temperature_offset = (data[0] << 8) | data[1];
 		logd("SCD30 Temperature Offset (startup): %d\n\r", scd30.temperature_offset);
 	} else {
 		logw("SCD30 SCD30_REG_TEMP_OFFSET CRC error: %x != %x\n\r", scd30_calculate_crc(data, 2), data[2]);
