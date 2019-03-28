@@ -3,4 +3,4 @@
 setup:
 	# Get current all values
 	subscribe to tinkerforge/response/co2_v2_bricklet/XYZ/get_all_values
-	publish '' to tinkerforge/request/co2_v2_bricklet/XYZ/get_all_values 
+	publish '' to tinkerforge/request/co2_v2_bricklet/XYZ/get_all_values

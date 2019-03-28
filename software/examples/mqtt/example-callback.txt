@@ -6,4 +6,4 @@ setup:
 	publish '{"register": true}' to tinkerforge/register/co2_v2_bricklet/XYZ/all_values # Register all_values callback
 	
 	# Set period for all values callback to 1s (1000ms)
-	publish '{"period": 1000, "value_has_to_change": false}' to tinkerforge/request/co2_v2_bricklet/XYZ/set_all_values_callback_configuration 
+	publish '{"period": 1000, "value_has_to_change": false}' to tinkerforge/request/co2_v2_bricklet/XYZ/set_all_values_callback_configuration
