@@ -850,7 +850,7 @@
       (net 2 GND))
     (pad 1 thru_hole circle (at -1.4 -1.4 180) (size 1.8 1.8) (drill 1) (layers *.Cu *.Mask)
       (net 5 "Net-(C6-Pad1)"))
-    (model ${KICAD_SYMBOL_DIR}/3d/Sensors_Detectors/SCD30.step
+    (model Sensors_Detectors/SCD30.step
       (at (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
