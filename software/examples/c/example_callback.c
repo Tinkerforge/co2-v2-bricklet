@@ -37,7 +37,7 @@ int main(void) {
 	// Register all values callback to function cb_all_values
 	co2_v2_register_callback(&co2,
 	                         CO2_V2_CALLBACK_ALL_VALUES,
-	                         (void *)cb_all_values,
+	                         (void (*)(void))cb_all_values,
 	                         NULL);
 
 	// Set period for all values callback to 1s (1000ms)
