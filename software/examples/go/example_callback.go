@@ -21,7 +21,7 @@ func main() {
 	co2.RegisterAllValuesCallback(func(co2Concentration uint16, temperature int16, humidity uint16) {
 		fmt.Printf("CO2 Concentration: %d ppm\n", co2Concentration)
 		fmt.Printf("Temperature: %f °C\n", float64(temperature)/100.0)
-		fmt.Printf("Humidity: %f %RH\n", float64(humidity)/100.0)
+		fmt.Printf("Humidity: %f %%RH\n", float64(humidity)/100.0)
 		fmt.Println()
 	})
 

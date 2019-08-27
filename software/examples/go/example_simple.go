@@ -23,7 +23,7 @@ func main() {
 
 	fmt.Printf("CO2 Concentration:  ppm\n", co2Concentration)
 	fmt.Printf("Temperature: %f °C\n", float64(temperature)/100.0)
-	fmt.Printf("Humidity: %f %RH\n", float64(humidity)/100.0)
+	fmt.Printf("Humidity: %f %%RH\n", float64(humidity)/100.0)
 
 	fmt.Print("Press enter to exit.")
 	fmt.Scanln()
