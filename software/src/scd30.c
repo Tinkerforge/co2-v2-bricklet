@@ -141,20 +141,91 @@ bool scd30_check_crc(uint8_t *data) {
 	return data[2] == scd30_calculate_crc(data, 2);
 }
 
-void scd30_task_tick(void) {
-	uint8_t data[20];
+bool scd30_task_main_loop(uint8_t *data) {
+	uint32_t ret;
 
-	coop_task_sleep_ms(2500);
+	if(scd30.air_pressure_new) {
+		data[0] = scd30.air_pressure >> 8;
+		data[1] = scd30.air_pressure & 0xFF;
+		data[2] = scd30_calculate_crc(data, 2);
 
-#if LOGGING_LEVEL != LOGGING_DEBUG
-	// Print SCD30 firmware version
-	i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_FIRMWARE_VERSION, 0, NULL, true);
-	i2c_fifo_coop_read_direct(&scd30.i2c_fifo, 3, data, false);
-	if(scd30_check_crc(data)) {
-		logd("SCD30 Firmware: %x %x\n\r", data[0], data[1]);
+		// Set new air pressure and start continous measurement
+		if((ret = i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_TRIGGER_CONT, 3, data, true)) != 0) {
+			logw("i2c_fifo_coop_write_register error: %d\n\r", ret);
+			return false;
+		}
+
+		scd30.air_pressure_new = false;
 	}
-#endif
 
+	if(scd30.temperature_offset_new) {
+		data[0] = scd30.temperature_offset >> 8;
+		data[1] = scd30.temperature_offset & 0xFF;
+		data[2] = scd30_calculate_crc(data, 2);
+
+		// Set new temperature offset
+		if((ret = i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_TEMP_OFFSET, 3, data, true)) != 0) {
+			logw("i2c_fifo_coop_write_register error: %d\n\r", ret);
+			return false;
+		}
+
+		scd30.temperature_offset_new = false;
+	}
+
+	coop_task_sleep_ms(500);
+	if((ret = i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_DATA_READY, 0, NULL, true)) != 0) {
+		logw("i2c_fifo_coop_write_register error: %d\n\r", ret);
+		return false;
+	}
+	if((ret = i2c_fifo_coop_read_direct(&scd30.i2c_fifo, 3, data, false)) != 0 ) {
+		logw("i2c_fifo_coop_read_direct error: %d\n\r", ret);
+		return false;
+	}
+	if(scd30_check_crc(data)) {
+		if(data[1] == 1) {
+			if((ret = scd30_read_data_task(data)) != 0) {
+				logw("scd30_read_data_task error: %d\n\r", ret);
+			}
+			if(scd30_check_crc(&data[0]) && scd30_check_crc(&data[3])) {
+				uint32_t co2_uint = (data[0] << 24) | (data[1] << 16) | (data[3] << 8) | (data[4] << 0);
+				float *co2 = (float*)&co2_uint;
+				scd30.co2_concentration = (uint16_t)*co2;
+			} else {
+				logw("SCD30 CO2 CRC error: %x != %x or %x != %x\n\r", 
+						scd30_calculate_crc(&data[0], 2), data[2],
+						scd30_calculate_crc(&data[3], 2), data[5]);
+			}
+
+			if(scd30_check_crc(&data[6]) && scd30_check_crc(&data[9])) {
+				uint32_t temperature_uint = (data[6] << 24) | (data[7] << 16) | (data[9] << 8) | (data[10] << 0);
+				float *temperature = (float*)&temperature_uint;
+				*temperature = *temperature*100;
+				scd30.temperature = (int16_t)*temperature;
+			} else {
+				logw("SCD30 Temperature CRC error: %x != %x or %x != %x\n\r", 
+						scd30_calculate_crc(&data[6], 2), data[8],
+						scd30_calculate_crc(&data[9], 2), data[11]);
+			}
+
+			if(scd30_check_crc(&data[12]) && scd30_check_crc(&data[15])) {
+				uint32_t humidity_uint = (data[12] << 24) | (data[13] << 16) | (data[15] << 8) | (data[16] << 0);
+				float *humidity = (float*)&humidity_uint;
+				*humidity = *humidity*100;
+				scd30.humidity = (uint16_t)*humidity;
+			} else {
+				logw("SCD30 Temperature CRC error: %x != %x or %x != %x\n\r", 
+						scd30_calculate_crc(&data[12], 2), data[14],
+						scd30_calculate_crc(&data[15], 2), data[17]);
+			}
+		}
+	} else {
+		logw("SCD30 SCD30_REG_DATA_READY CRC error: %x != %x\n\r", scd30_calculate_crc(data, 2), data[2]);
+	}
+
+	return true;
+}
+
+void scd30_task_tick_init(uint8_t *data) {
 	// Read temperature offset
 	i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_TEMP_OFFSET, 0, NULL, true);
 	i2c_fifo_coop_read_direct(&scd30.i2c_fifo, 3, data, false);
@@ -173,76 +244,6 @@ void scd30_task_tick(void) {
 	coop_task_sleep_ms(5);
 
 	scd30.air_pressure_new = true;
-
-	while(true) {
-		if(scd30.air_pressure_new) {
-			data[0] = scd30.air_pressure >> 8;
-			data[1] = scd30.air_pressure & 0xFF;
-			data[2] = scd30_calculate_crc(data, 2);
-
-			// Set new air pressure and start continous measurement
-			i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_TRIGGER_CONT, 3, data, true);
-
-			scd30.air_pressure_new = false;
-		}
-
-		if(scd30.temperature_offset_new) {
-			data[0] = scd30.temperature_offset >> 8;
-			data[1] = scd30.temperature_offset & 0xFF;
-			data[2] = scd30_calculate_crc(data, 2);
-
-			// Set new temperature offset
-			i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_TEMP_OFFSET, 3, data, true);
-
-			scd30.temperature_offset_new = false;
-		}
-
-		coop_task_sleep_ms(500);
-		i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_DATA_READY, 0, NULL, true);
-		i2c_fifo_coop_read_direct(&scd30.i2c_fifo, 3, data, false);
-		if(scd30_check_crc(data)) {
-			if(data[1] == 1) {
-				scd30_read_data_task(data);
-				if(scd30_check_crc(&data[0]) && scd30_check_crc(&data[3])) {
-					uint32_t co2_uint = (data[0] << 24) | (data[1] << 16) | (data[3] << 8) | (data[4] << 0);
-					float *co2 = (float*)&co2_uint;
-					scd30.co2_concentration = (uint16_t)*co2;
-				} else {
-					logw("SCD30 CO2 CRC error: %x != %x or %x != %x\n\r", 
-					     scd30_calculate_crc(&data[0], 2), data[2],
-					     scd30_calculate_crc(&data[3], 2), data[5]);
-				}
-
-				if(scd30_check_crc(&data[6]) && scd30_check_crc(&data[9])) {
-					uint32_t temperature_uint = (data[6] << 24) | (data[7] << 16) | (data[9] << 8) | (data[10] << 0);
-					float *temperature = (float*)&temperature_uint;
-					*temperature = *temperature*100;
-					scd30.temperature = (int16_t)*temperature;
-				} else {
-					logw("SCD30 Temperature CRC error: %x != %x or %x != %x\n\r", 
-					     scd30_calculate_crc(&data[6], 2), data[8],
-					     scd30_calculate_crc(&data[9], 2), data[11]);
-				}
-
-				if(scd30_check_crc(&data[12]) && scd30_check_crc(&data[15])) {
-					uint32_t humidity_uint = (data[12] << 24) | (data[13] << 16) | (data[15] << 8) | (data[16] << 0);
-					float *humidity = (float*)&humidity_uint;
-					*humidity = *humidity*100;
-					scd30.humidity = (uint16_t)*humidity;
-				} else {
-					logw("SCD30 Temperature CRC error: %x != %x or %x != %x\n\r", 
-					     scd30_calculate_crc(&data[12], 2), data[14],
-					     scd30_calculate_crc(&data[15], 2), data[17]);
-				}
-			}
-		} else {
-			logw("SCD30 SCD30_REG_DATA_READY CRC error: %x != %x\n\r", scd30_calculate_crc(data, 2), data[2]);
-		}
-	}
-}
-
-void scd30_tick(void) {
-	coop_task_tick(&scd30_task);
 }
 
 void scd30_init_i2c(void) {
@@ -267,6 +268,38 @@ void scd30_init_i2c(void) {
 	scd30.i2c_fifo.sda_fifo_pointer = SCD30_SDA_FIFO_POINTER;
 
 	i2c_fifo_init(&scd30.i2c_fifo);
+}
+
+void scd30_task_tick(void) {
+	uint8_t data[20];
+
+	// Wait for bootup (datasheet says >2 seconds)
+	coop_task_sleep_ms(2500);
+
+#if LOGGING_LEVEL == LOGGING_DEBUG
+	// Print SCD30 firmware version
+	i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_FIRMWARE_VERSION, 0, NULL, true);
+	i2c_fifo_coop_read_direct(&scd30.i2c_fifo, 3, data, false);
+	if(scd30_check_crc(data)) {
+		logd("SCD30 Firmware: %x %x\n\r", data[0], data[1]);
+	}
+#endif
+
+	scd30_task_tick_init(data);
+
+	while(true) {
+		if(!scd30_task_main_loop(data)) {
+			// In case of any kind of error we reset the I2C hardware unit (this includes a fifo flush)
+			scd30_init_i2c();
+
+			// And reinitialize the SCD30 (this includes a I2C soft reset)
+			scd30_task_tick_init(data);
+		}
+	}
+}
+
+void scd30_tick(void) {
+	coop_task_tick(&scd30_task);
 }
 
 void scd30_init(void) {

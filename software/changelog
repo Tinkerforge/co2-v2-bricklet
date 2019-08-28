@@ -3,3 +3,6 @@
 
 2019-05-29: 2.0.1 (d9241d2)
 - Fix SPITFP IRQ race condition with other higher prio IRQs (through bricklib2)
+
+2019-08-13: 2.0.2 (TBD)
+- Improve I2C error handling

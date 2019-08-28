@@ -31,12 +31,12 @@
 
 #define FIRMWARE_VERSION_MAJOR 2
 #define FIRMWARE_VERSION_MINOR 0
-#define FIRMWARE_VERSION_REVISION 1
+#define FIRMWARE_VERSION_REVISION 2
 
 #define I2C_FIFO_COOP_ENABLE
 #define I2C_FIFO_REG_TYPE uint16_t
 #define I2C_FIFO_REG_SIZE 2
-#define I2C_FIFO_TIMEOUT 1000
+#define I2C_FIFO_TIMEOUT 10000
 
 #include "config_custom_bootloader.h"
 
