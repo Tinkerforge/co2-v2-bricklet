@@ -18,16 +18,16 @@ import time
 if __name__ == "__main__":
     ipcon = IPConnection() # Create IP connection
     co2 = BrickletCO2V2(UID_CO2, ipcon) # Create device object
-    aq  = BrickletAirQuality(UID_AQ, ipcon) # Create device object
+    aq = BrickletAirQuality(UID_AQ, ipcon) # Create device object
 
     ipcon.connect(HOST, PORT) # Connect to brickd
     # Don't use device before ipcon is connected
 
-    # Get air pressure in .01 mbar
+    # Get air pressure in 0.01 hPa
     air_pressure = aq.get_air_pressure()
 
-    # Set air pressure for calibration in mbar
-    co2.set_air_pressure(air_pressure//100)
+    # Set air pressure for calibration in hPa
+    co2.set_air_pressure(air_pressure // 100)
 
     # Get current all values
     while True:
