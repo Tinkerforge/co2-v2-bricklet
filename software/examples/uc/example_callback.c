@@ -1,13 +1,9 @@
-
-
 #include "bindings/hal_common.h"
 #include "bindings/bricklet_co2_v2.h"
 
 #define UID "XYZ" // Change XYZ to the UID of your CO2 Bricklet 2.0
 
 void check(int rc, const char* msg);
-
-
 
 // Callback function for all values callback
 void all_values_handler(TF_CO2V2 *device, uint16_t co2_concentration, int16_t temperature,
@@ -19,7 +15,6 @@ void all_values_handler(TF_CO2V2 *device, uint16_t co2_concentration, int16_t te
 	tf_hal_printf("Humidity: %d 1/%d %%RH\n", humidity, 100.0);
 	tf_hal_printf("\n");
 }
-
 
 TF_CO2V2 co2;
 
