@@ -22,15 +22,13 @@ void example_setup(TF_HalContext *hal) {
 	// Create device object
 	check(tf_co2_v2_create(&co2, UID, hal), "create device object");
 
-
 	// Register all values callback to function all_values_handler
 	tf_co2_v2_register_all_values_callback(&co2,
-	                                      all_values_handler,
-	                                      NULL);
+	                                       all_values_handler,
+	                                       NULL);
 
 	// Set period for all values callback to 1s (1000ms)
 	tf_co2_v2_set_all_values_callback_configuration(&co2, 1000, false);
-
 }
 
 void example_loop(TF_HalContext *hal) {
