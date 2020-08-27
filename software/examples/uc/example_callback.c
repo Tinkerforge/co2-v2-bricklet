@@ -5,9 +5,13 @@
 
 void check(int rc, const char* msg);
 
+void example_setup(TF_HalContext *hal);
+void example_loop(TF_HalContext *hal);
+
+
 // Callback function for all values callback
-void all_values_handler(TF_CO2V2 *device, uint16_t co2_concentration, int16_t temperature,
-                        uint16_t humidity, void *user_data) {
+static void all_values_handler(TF_CO2V2 *device, uint16_t co2_concentration,
+                               int16_t temperature, uint16_t humidity, void *user_data) {
 	(void)device; (void)user_data; // avoid unused parameter warning
 
 	tf_hal_printf("CO2 Concentration: %u ppm\n", co2_concentration);
@@ -16,7 +20,7 @@ void all_values_handler(TF_CO2V2 *device, uint16_t co2_concentration, int16_t te
 	tf_hal_printf("\n");
 }
 
-TF_CO2V2 co2;
+static TF_CO2V2 co2;
 
 void example_setup(TF_HalContext *hal) {
 	// Create device object
