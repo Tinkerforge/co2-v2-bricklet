@@ -14,7 +14,7 @@ static void all_values_handler(TF_CO2V2 *device, uint16_t co2_concentration,
                                int16_t temperature, uint16_t humidity, void *user_data) {
 	(void)device; (void)user_data; // avoid unused parameter warning
 
-	tf_hal_printf("CO2 Concentration: %u ppm\n", co2_concentration);
+	tf_hal_printf("CO2 Concentration: %I16u ppm\n", co2_concentration);
 	tf_hal_printf("Temperature: %d 1/%d °C\n", temperature, 100.0);
 	tf_hal_printf("Humidity: %d 1/%d %%RH\n", humidity, 100.0);
 	tf_hal_printf("\n");

@@ -20,7 +20,7 @@ void example_setup(TF_HalContext *hal) {
 	check(tf_co2_v2_get_all_values(&co2, &co2_concentration, &temperature,
 	                               &humidity), "get all values");
 
-	tf_hal_printf("CO2 Concentration: %u ppm\n", co2_concentration);
+	tf_hal_printf("CO2 Concentration: %I16u ppm\n", co2_concentration);
 	tf_hal_printf("Temperature: %d 1/%d °C\n", temperature, 100.0);
 	tf_hal_printf("Humidity: %d 1/%d %%RH\n", humidity, 100.0);
 }
