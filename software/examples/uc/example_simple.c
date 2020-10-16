@@ -25,8 +25,8 @@ void example_setup(TF_HalContext *hal) {
 	                               &humidity), "get all values");
 
 	tf_hal_printf("CO2 Concentration: %I16u ppm\n", co2_concentration);
-	tf_hal_printf("Temperature: %d 1/%d °C\n", temperature, 100.0);
-	tf_hal_printf("Humidity: %d 1/%d %%RH\n", humidity, 100.0);
+	tf_hal_printf("Temperature: %d 1/%d °C\n", temperature, 100);
+	tf_hal_printf("Humidity: %d 1/%d %%RH\n", humidity, 100);
 }
 
 void example_loop(TF_HalContext *hal) {
