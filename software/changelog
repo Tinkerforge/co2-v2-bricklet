@@ -6,3 +6,6 @@
 
 2019-08-28: 2.0.2 (5f59a17)
 - Improve I2C error handling
+
+2022-04-19: 2.0.3 (TBD)
+- Make sure ASC is enabled on each startup

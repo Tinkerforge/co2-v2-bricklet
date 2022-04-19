@@ -236,6 +236,12 @@ void scd30_task_tick_init(uint8_t *data) {
 		logw("SCD30 SCD30_REG_TEMP_OFFSET CRC error: %x != %x\n\r", scd30_calculate_crc(data, 2), data[2]);
 	}
 
+	// Enable Automatic Self-Calibration (ASC)
+	data[0] = 0x00;
+	data[1] = 0x01;
+	data[2] = scd30_calculate_crc(data, 2);
+	i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_ASC, 3, data, true);
+
 	// Configure interval to 2 seconds
 	data[0] = 0x00;
 	data[1] = 0x02;
