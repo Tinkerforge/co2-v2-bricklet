@@ -9,8 +9,8 @@
 
 void check(int rc, const char* msg);
 
-void example_setup(TF_HalContext *hal);
-void example_loop(TF_HalContext *hal);
+void example_setup(TF_HAL *hal);
+void example_loop(TF_HAL *hal);
 
 
 // Callback function for all values callback
@@ -26,7 +26,7 @@ static void all_values_handler(TF_CO2V2 *device, uint16_t co2_concentration,
 
 static TF_CO2V2 co2;
 
-void example_setup(TF_HalContext *hal) {
+void example_setup(TF_HAL *hal) {
 	// Create device object
 	check(tf_co2_v2_create(&co2, UID, hal), "create device object");
 
@@ -39,7 +39,7 @@ void example_setup(TF_HalContext *hal) {
 	tf_co2_v2_set_all_values_callback_configuration(&co2, 1000, false);
 }
 
-void example_loop(TF_HalContext *hal) {
+void example_loop(TF_HAL *hal) {
 	// Poll for callbacks
 	tf_hal_callback_tick(hal, 0);
 }
