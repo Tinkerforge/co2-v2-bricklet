@@ -1,17 +1,13 @@
 // This example is not self-contained.
-// It requres usage of the example driver specific to your platform.
+// It requires usage of the example driver specific to your platform.
 // See the HAL documentation.
 
-#include "bindings/hal_common.h"
-#include "bindings/bricklet_co2_v2.h"
+#include "src/bindings/hal_common.h"
+#include "src/bindings/bricklet_co2_v2.h"
 
-#define UID "XYZ" // Change XYZ to the UID of your CO2 Bricklet 2.0
-
-void check(int rc, const char* msg);
-
+void check(int rc, const char *msg);
 void example_setup(TF_HAL *hal);
 void example_loop(TF_HAL *hal);
-
 
 // Callback function for all values callback
 static void all_values_handler(TF_CO2V2 *device, uint16_t co2_concentration,
@@ -28,7 +24,7 @@ static TF_CO2V2 co2;
 
 void example_setup(TF_HAL *hal) {
 	// Create device object
-	check(tf_co2_v2_create(&co2, UID, hal), "create device object");
+	check(tf_co2_v2_create(&co2, NULL, hal), "create device object");
 
 	// Register all values callback to function all_values_handler
 	tf_co2_v2_register_all_values_callback(&co2,
