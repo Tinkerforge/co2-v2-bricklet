@@ -21,7 +21,7 @@ func main() {
 	// Get current all values.
 	co2Concentration, temperature, humidity, _ := co2.GetAllValues()
 
-	fmt.Printf("CO2 Concentration:  ppm\n", co2Concentration)
+	fmt.Printf("CO2 Concentration: %d ppm\n", co2Concentration)
 	fmt.Printf("Temperature: %f °C\n", float64(temperature)/100.0)
 	fmt.Printf("Humidity: %f %%RH\n", float64(humidity)/100.0)
 
