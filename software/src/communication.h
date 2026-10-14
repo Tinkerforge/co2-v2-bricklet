@@ -75,6 +75,10 @@ void communication_init(void);
 #define FID_GET_HUMIDITY 17
 #define FID_SET_HUMIDITY_CALLBACK_CONFIGURATION 18
 #define FID_GET_HUMIDITY_CALLBACK_CONFIGURATION 19
+#define FID_SET_AUTOMATIC_SELF_CALIBRATION 21
+#define FID_GET_AUTOMATIC_SELF_CALIBRATION 22
+#define FID_SET_FORCED_RECALIBRATION 23
+#define FID_GET_FORCED_RECALIBRATION 24
 
 #define FID_CALLBACK_ALL_VALUES 8
 #define FID_CALLBACK_CO2_CONCENTRATION 12
@@ -143,6 +147,34 @@ typedef struct {
 	uint16_t humidity;
 } __attribute__((__packed__)) AllValues_Callback;
 
+typedef struct {
+	TFPMessageHeader header;
+	bool enabled;
+} __attribute__((__packed__)) SetAutomaticSelfCalibration;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetAutomaticSelfCalibration;
+
+typedef struct {
+	TFPMessageHeader header;
+	bool enabled;
+} __attribute__((__packed__)) GetAutomaticSelfCalibration_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint16_t co2_concentration;
+} __attribute__((__packed__)) SetForcedRecalibration;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetForcedRecalibration;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint16_t co2_concentration;
+} __attribute__((__packed__)) GetForcedRecalibration_Response;
+
 
 // Function prototypes
 BootloaderHandleMessageResponse get_all_values(const GetAllValues *data, GetAllValues_Response *response);
@@ -152,6 +184,10 @@ BootloaderHandleMessageResponse set_temperature_offset(const SetTemperatureOffse
 BootloaderHandleMessageResponse get_temperature_offset(const GetTemperatureOffset *data, GetTemperatureOffset_Response *response);
 BootloaderHandleMessageResponse set_all_values_callback_configuration(const SetAllValuesCallbackConfiguration *data);
 BootloaderHandleMessageResponse get_all_values_callback_configuration(const GetAllValuesCallbackConfiguration *data, GetAllValuesCallbackConfiguration_Response *response);
+BootloaderHandleMessageResponse set_automatic_self_calibration(const SetAutomaticSelfCalibration *data);
+BootloaderHandleMessageResponse get_automatic_self_calibration(const GetAutomaticSelfCalibration *data, GetAutomaticSelfCalibration_Response *response);
+BootloaderHandleMessageResponse set_forced_recalibration(const SetForcedRecalibration *data);
+BootloaderHandleMessageResponse get_forced_recalibration(const GetForcedRecalibration *data, GetForcedRecalibration_Response *response);
 
 // Callbacks
 bool handle_all_values_callback(void);

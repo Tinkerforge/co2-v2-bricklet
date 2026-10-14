@@ -25,6 +25,8 @@
 
 #include "bricklib2/os/coop_task.h"
 #include "bricklib2/hal/i2c_fifo/i2c_fifo.h"
+#include "bricklib2/hal/system_timer/system_timer.h"
+#include "bricklib2/bootloader/bootloader.h"
 
 #include "bricklib2/logging/logging.h"
 
@@ -141,6 +143,28 @@ bool scd30_check_crc(uint8_t *data) {
 	return data[2] == scd30_calculate_crc(data, 2);
 }
 
+uint32_t scd30_read_frc(uint8_t *data) {
+	uint32_t ret;
+
+	if((ret = i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_FRC, 0, NULL, true)) != 0) {
+		logw("i2c_fifo_coop_write_register error: %d\n\r", ret);
+		return ret;
+	}
+	if((ret = i2c_fifo_coop_read_direct(&scd30.i2c_fifo, 3, data, false)) != 0) {
+		logw("i2c_fifo_coop_read_direct error: %d\n\r", ret);
+		return ret;
+	}
+
+	if(scd30_check_crc(data)) {
+		scd30.frc_co2_concentration_sensor = (data[0] << 8) | data[1];
+		logd("SCD30 FRC: %d\n\r", scd30.frc_co2_concentration_sensor);
+	} else {
+		logw("SCD30 SCD30_REG_FRC CRC error: %x != %x\n\r", scd30_calculate_crc(data, 2), data[2]);
+	}
+
+	return 0;
+}
+
 bool scd30_task_main_loop(uint8_t *data) {
 	uint32_t ret;
 
@@ -172,6 +196,41 @@ bool scd30_task_main_loop(uint8_t *data) {
 		scd30.temperature_offset_new = false;
 	}
 
+	if(scd30.asc_new) {
+		scd30.asc_new = false;
+
+		data[0] = 0x00;
+		data[1] = scd30.asc_enabled ? 0x01 : 0x00;
+		data[2] = scd30_calculate_crc(data, 2);
+
+		// Enable/disable Automatic Self-Calibration (ASC)
+		if((ret = i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_ASC, 3, data, true)) != 0) {
+			logw("i2c_fifo_coop_write_register error: %d\n\r", ret);
+			return false;
+		}
+	}
+
+	if(scd30.frc_new && system_timer_is_time_elapsed_ms(scd30.measurement_start_time, SCD30_FRC_MIN_MEASUREMENT_TIME)) {
+		scd30.frc_new = false;
+
+		data[0] = scd30.frc_co2_concentration >> 8;
+		data[1] = scd30.frc_co2_concentration & 0xFF;
+		data[2] = scd30_calculate_crc(data, 2);
+
+		// Set Forced Recalibration (FRC) reference value
+		if((ret = i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_FRC, 3, data, true)) != 0) {
+			logw("i2c_fifo_coop_write_register error: %d\n\r", ret);
+			// Retry after reinitialization
+			scd30.frc_new = true;
+			return false;
+		}
+
+		// Read back reference value reported by the SCD30
+		if(scd30_read_frc(data) != 0) {
+			return false;
+		}
+	}
+
 	coop_task_sleep_ms(500);
 	if((ret = i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_DATA_READY, 0, NULL, true)) != 0) {
 		logw("i2c_fifo_coop_write_register error: %d\n\r", ret);
@@ -191,7 +250,7 @@ bool scd30_task_main_loop(uint8_t *data) {
 				float *co2 = (float*)&co2_uint;
 				scd30.co2_concentration = (uint16_t)*co2;
 			} else {
-				logw("SCD30 CO2 CRC error: %x != %x or %x != %x\n\r", 
+				logw("SCD30 CO2 CRC error: %x != %x or %x != %x\n\r",
 						scd30_calculate_crc(&data[0], 2), data[2],
 						scd30_calculate_crc(&data[3], 2), data[5]);
 			}
@@ -202,7 +261,7 @@ bool scd30_task_main_loop(uint8_t *data) {
 				*temperature = *temperature*100;
 				scd30.temperature = (int16_t)*temperature;
 			} else {
-				logw("SCD30 Temperature CRC error: %x != %x or %x != %x\n\r", 
+				logw("SCD30 Temperature CRC error: %x != %x or %x != %x\n\r",
 						scd30_calculate_crc(&data[6], 2), data[8],
 						scd30_calculate_crc(&data[9], 2), data[11]);
 			}
@@ -213,7 +272,7 @@ bool scd30_task_main_loop(uint8_t *data) {
 				*humidity = *humidity*100;
 				scd30.humidity = (uint16_t)*humidity;
 			} else {
-				logw("SCD30 Temperature CRC error: %x != %x or %x != %x\n\r", 
+				logw("SCD30 Temperature CRC error: %x != %x or %x != %x\n\r",
 						scd30_calculate_crc(&data[12], 2), data[14],
 						scd30_calculate_crc(&data[15], 2), data[17]);
 			}
@@ -236,10 +295,14 @@ void scd30_task_tick_init(uint8_t *data) {
 		logw("SCD30 SCD30_REG_TEMP_OFFSET CRC error: %x != %x\n\r", scd30_calculate_crc(data, 2), data[2]);
 	}
 
-	// Enable Automatic Self-Calibration (ASC)
+	// Read FRC reference value
+	scd30_read_frc(data);
+
+	// Enable/disable Automatic Self-Calibration (ASC)
 	data[0] = 0x00;
-	data[1] = 0x01;
+	data[1] = scd30.asc_enabled ? 0x01 : 0x00;
 	data[2] = scd30_calculate_crc(data, 2);
+	scd30.asc_new = false;
 	i2c_fifo_coop_write_register(&scd30.i2c_fifo, SCD30_REG_ASC, 3, data, true);
 
 	// Configure interval to 2 seconds
@@ -250,6 +313,7 @@ void scd30_task_tick_init(uint8_t *data) {
 	coop_task_sleep_ms(5);
 
 	scd30.air_pressure_new = true;
+	scd30.measurement_start_time = system_timer_get_ms();
 }
 
 void scd30_init_i2c(void) {
@@ -308,8 +372,35 @@ void scd30_tick(void) {
 	coop_task_tick(&scd30_task);
 }
 
+void scd30_write_config(void) {
+	uint32_t page[EEPROM_PAGE_SIZE/sizeof(uint32_t)];
+
+	page[SCD30_CONFIG_MAGIC_POS] = SCD30_CONFIG_MAGIC;
+	page[SCD30_CONFIG_ASC_POS]   = scd30.asc_enabled;
+
+	if(!bootloader_write_eeprom_page(SCD30_CONFIG_PAGE, page)) {
+		loge("SCD30 failed to write config page\n\r");
+	}
+}
+
+void scd30_read_config(void) {
+	uint32_t page[EEPROM_PAGE_SIZE/sizeof(uint32_t)];
+
+	bootloader_read_eeprom_page(SCD30_CONFIG_PAGE, page);
+
+	if(page[SCD30_CONFIG_MAGIC_POS] != SCD30_CONFIG_MAGIC) {
+		scd30.asc_enabled = true;
+		scd30_write_config();
+		return;
+	}
+
+	scd30.asc_enabled = page[SCD30_CONFIG_ASC_POS] != 0;
+}
+
 void scd30_init(void) {
 	memset(&scd30, 0, sizeof(SCD30));
+	scd30.frc_co2_concentration_sensor = SCD30_FRC_DEFAULT_CO2_CONCENTRATION;
+	scd30_read_config();
 	scd30_init_i2c();
 
 	coop_task_init(&scd30_task, scd30_task_tick);

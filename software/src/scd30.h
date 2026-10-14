@@ -38,6 +38,15 @@ typedef struct {
 	bool air_pressure_new;
 	uint16_t air_pressure;
 
+	bool asc_enabled;
+	bool asc_new;
+
+	bool frc_new;
+	uint16_t frc_co2_concentration;
+	uint16_t frc_co2_concentration_sensor;
+
+	uint32_t measurement_start_time;
+
 	bool all_values_callback_value_has_to_change;
 	uint32_t all_values_callback_period;
 } SCD30;
@@ -46,10 +55,22 @@ extern SCD30 scd30;
 
 void scd30_tick(void);
 void scd30_init(void);
+void scd30_write_config(void);
 
 uint16_t scd30_get_humidity(void);
 int16_t scd30_get_temperature(void);
 uint16_t scd30_get_co2_concentration(void);
+
+#define SCD30_CONFIG_PAGE          1
+#define SCD30_CONFIG_MAGIC         0x12345678
+#define SCD30_CONFIG_MAGIC_POS     0
+#define SCD30_CONFIG_ASC_POS       1
+
+// The SCD30 has to measure continuously for at least 2 minutes before FRC is applied
+#define SCD30_FRC_MIN_MEASUREMENT_TIME (2*60*1000)
+
+// Reference value reported by the SCD30 if no FRC was applied since power-up
+#define SCD30_FRC_DEFAULT_CO2_CONCENTRATION 400
 
 #define SCD30_REG_TRIGGER_CONT     0x0010
 #define SCD30_REG_STOP_CONT        0x0104

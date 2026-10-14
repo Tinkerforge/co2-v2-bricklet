@@ -55,6 +55,10 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_GET_HUMIDITY: return get_callback_value_uint16_t(message, response, &callback_value_humidity);
 		case FID_SET_HUMIDITY_CALLBACK_CONFIGURATION: return set_callback_value_callback_configuration_uint16_t(message, &callback_value_humidity);
 		case FID_GET_HUMIDITY_CALLBACK_CONFIGURATION: return get_callback_value_callback_configuration_uint16_t(message, response, &callback_value_humidity);
+		case FID_SET_AUTOMATIC_SELF_CALIBRATION: return set_automatic_self_calibration(message);
+		case FID_GET_AUTOMATIC_SELF_CALIBRATION: return get_automatic_self_calibration(message, response);
+		case FID_SET_FORCED_RECALIBRATION: return set_forced_recalibration(message);
+		case FID_GET_FORCED_RECALIBRATION: return get_forced_recalibration(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -112,6 +116,42 @@ BootloaderHandleMessageResponse get_all_values_callback_configuration(const GetA
 	response->header.length = sizeof(GetAllValuesCallbackConfiguration_Response);
 	response->value_has_to_change = scd30.all_values_callback_value_has_to_change;
 	response->period              = scd30.all_values_callback_period;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_automatic_self_calibration(const SetAutomaticSelfCalibration *data) {
+	if(scd30.asc_enabled != data->enabled) {
+		scd30.asc_enabled = data->enabled;
+		scd30_write_config();
+	}
+
+	scd30.asc_new = true;
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_automatic_self_calibration(const GetAutomaticSelfCalibration *data, GetAutomaticSelfCalibration_Response *response) {
+	response->header.length = sizeof(GetAutomaticSelfCalibration_Response);
+	response->enabled       = scd30.asc_enabled;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_forced_recalibration(const SetForcedRecalibration *data) {
+	if((data->co2_concentration < 400) || (data->co2_concentration > 2000)) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	scd30.frc_co2_concentration = data->co2_concentration;
+	scd30.frc_new               = true;
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_forced_recalibration(const GetForcedRecalibration *data, GetForcedRecalibration_Response *response) {
+	response->header.length     = sizeof(GetForcedRecalibration_Response);
+	response->co2_concentration = scd30.frc_co2_concentration_sensor;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
